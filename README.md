@@ -46,30 +46,76 @@ For running the stepper motor in clockwise and anticlockwise directions:
 ---
 
 ## PROGRAM
-
 ```asm
 ; Stepper Motor Interfacing Program in 8086 Assembly
 
-START:   MOV DI, 1200H        ; Initialize memory location to store array
-         MOV CX, 0004H        ; Initialize array size
+.MODEL SMALL
+.STACK 100H
 
-DOWN1:   MOV AL, [DI]         ; Copy the first data into AL
-         OUT C0, AL           ; Send it through port address
+.DATA
+    DATA1 DB 09H, 05H, 06H, 0AH
 
-         MOV DX, 1010H        ; Delay subroutine
-L1:      DEC DX
-         JNZ L1
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
 
-         INC DI               ; Go to next memory location
-         LOOP DOWN1           ; Repeat until all data is sent
+    MOV DX, 00C0H        ; Output port address
 
-         JMP START            ; Continuous rotation
+; CLOCKWISE ROTATION
+CLOCKWISE:
+    LEA SI, DATA1
+    MOV CX, 0004H
 
-         HLT                  ; Stop
+UP:
+    MOV AL, [SI]
+    OUT DX, AL
 
-DATA:    DB 09H, 05H, 06H, 0AH ; Array of data
+    CALL DELAY
+
+    INC SI
+    LOOP UP
+
+; ANTICLOCKWISE ROTATION
+ANTICLOCKWISE:
+    LEA SI, DATA1
+    ADD SI, 0003H
+    MOV CX, 0004H
+
+DOWN:
+    MOV AL, [SI]
+    OUT DX, AL
+
+    CALL DELAY
+
+    DEC SI
+    LOOP DOWN
+
+    JMP CLOCKWISE
+
+; DELAY SUBROUTINE
+DELAY PROC
+    MOV BX, 1010H
+
+L1:
+    DEC BX
+    JNZ L1
+    RET
+DELAY ENDP
+
+END START
+
 ```
+
 ## OUTPUT OF THE PROGRAM:
+clockwise:
+```
+09H → 05H → 06H → 0AH
+```
+anti-clockwise
+```
+0AH → 06H → 05H → 09H
+```
 
 ## RESULT
 
